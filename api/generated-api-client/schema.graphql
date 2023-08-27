@@ -1,0 +1,520 @@
+"""
+Exposes a URL that specifies the behaviour of this scalar.
+"""
+directive @specifiedBy(
+  """
+  The URL that specifies the behaviour of this scalar.
+  """
+  url: String!
+) on SCALAR
+
+enum ErrorCode {
+  FORBIDDEN
+  INTERNAL_SERVER_ERROR
+  INVALID_INPUT
+  NOT_FOUND
+  UNAUTHENTICATED
+  VALIDATION
+  DUPLICATION
+}
+
+"""
+Number, string or array of both
+"""
+scalar FilterFieldValue
+
+enum FindNodeFilterName {
+  ID
+  TYPE
+  CODE_STARTED_AT
+  CODE_LAST_COMMIT_AT
+  RANK
+  COUNT_DEVS
+  COUNT_REPOS
+  MARKETCAP
+  MARKETCAP_RANK
+  SCORE
+  SYMBOL
+  SLUG
+  Q
+  DEV_SCORE
+  DEV_RANK
+  COUNT_DEVS_IN_TOP1000
+  COUNT_ACTIVE_DEVS_IN_TOP1000
+  COUNT_ACTIVE_DEVS
+  CREATED_AT
+}
+
+type ImageDetails {
+  small: String!
+  medium: String!
+  large: String!
+}
+
+input InputCreateNode {
+  name: String!
+  type: NodeType!
+  props: [InputCreateNodeProp!]!
+}
+
+input InputCreateNodeProp {
+  source: NodePropertySource!
+  nodeId: ID!
+  name: NodePropertyName!
+  value: String!
+  refNodeId: ID
+  numberValue: Float
+  data: String
+  startAt: String
+  endAt: String
+  info: String
+  lastSeenAt: String
+  sourceUrl: String
+  statusInfo: String
+  role: NodePropertyRole
+  format: NodePropertyFormat
+  uniqueValue: String
+  isVerified: Boolean
+  status: NodePropertyStatus
+}
+
+input InputCreateNodeProperty {
+  source: NodePropertySource!
+  nodeId: ID!
+  name: NodePropertyName!
+  value: String!
+  refNodeId: ID
+  numberValue: Float
+  data: String
+  startAt: String
+  endAt: String
+  info: String
+  lastSeenAt: String
+  sourceUrl: String
+  statusInfo: String
+  role: NodePropertyRole
+  format: NodePropertyFormat
+  uniqueValue: String
+  isVerified: Boolean
+  status: NodePropertyStatus
+}
+
+input InputNodeFilter {
+  name: FindNodeFilterName!
+  op: SqlOperator
+  value: FilterFieldValue!
+}
+
+input InputNodePropertyConnection {
+  first: Int!
+  after: String
+  nodeType: [NodeType!]
+  id: [Int!]
+  name: [NodePropertyName!]
+  nodeId: [ID!]
+  uniqueValue: [String!]
+  status: [NodePropertyStatus!]
+}
+
+input InputNodeSortBy {
+  name: FindNodeFilterName!
+  direction: SortDirection
+}
+
+input InputTeamMemberFilter {
+  name: TeamMemberFilterName!
+  op: SqlOperator = EQ
+  value: FilterFieldValue!
+}
+
+input InputTeamMemberSortBy {
+  name: TeamMemberSortBy!
+  direction: SortDirection
+}
+
+input InputUpdateNodeProperty {
+  id: ID!
+  value: String
+  refNodeId: ID
+  numberValue: Float
+  data: String
+  startAt: String
+  endAt: String
+  info: String
+  lastSeenAt: String
+  sourceUrl: String
+  statusInfo: String
+  role: NodePropertyRole
+  format: NodePropertyFormat
+  uniqueValue: String
+  isVerified: Boolean
+  status: NodePropertyStatus
+}
+
+type Mutation {
+  createNodeProperty(input: InputCreateNodeProperty!): NodeProperty!
+  updateNodeProperty(input: InputUpdateNodeProperty!): NodeProperty!
+  createNode(input: InputCreateNode!): Node!
+  exploreCoingekoId(id: String!): TaskLogStatus
+  mergeNodes(secondaryNodeId: ID!, nodeId: ID!): Node!
+}
+
+type Node {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  type: NodeType!
+  name: String!
+  slug: String!
+  status: NodeStatus!
+  currentProps(name: [NodePropertyName!], first: Float = 50): [NodeProperty!]!
+  properties: NodeProperties!
+  metrics: NodeMetrics!
+  currentMetric(orgId: ID, repoId: ID, personId: ID, coinId: ID, name: NodeMetricName!): NodeMetric
+
+  """
+  Team members of this node
+  """
+  teamMembers(
+    filter: [InputTeamMemberFilter!]
+    sort: [InputTeamMemberSortBy!]
+    after: String
+    first: Int = 10
+  ): TeamMemberConnection!
+
+  """
+  Teams this node is a member of
+  """
+  memberOfTeams(
+    filter: [InputTeamMemberFilter!]
+    sort: [InputTeamMemberSortBy!]
+    after: String
+    first: Int = 10
+  ): TeamMemberConnection!
+  image: ImageDetails
+}
+
+type NodeConnection {
+  edges: [NodeCursorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type NodeCursorEdge {
+  node: Node!
+  cursor: String!
+}
+
+type NodeMetric {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  rank: Int!
+  share: Float
+  total: Float
+  coinId: ID
+  personId: ID
+  repoId: ID
+  orgId: ID
+  name: NodeMetricName!
+  dimension: String!
+  value: Float!
+  date: String!
+  minValue: Float
+  maxValue: Float
+  changeValue: Float
+  changePercent: Float
+}
+
+enum NodeMetricName {
+  CODE_COMMITS
+  MARKETCAP_RANK
+  MARKETCAP_24H
+  ATH_PRICE
+  ATL_PRICE
+  PRICE_24H
+  PRICE_7D
+  PRICE_14D
+  PRICE_30D
+  PRICE_1Y
+  CIRCULATING_SUPPLY
+  TOTAL_SUPPLY
+  MAX_SUPPLY
+  VOLUME_24H
+  FD_VALUATION
+  GH_FOLLOWERS
+  GH_STARS
+  GH_FORKS
+  GH_OPEN_ISSUES
+  GH_WATCHERS
+  DEV_SCORE
+  SCORE
+  COUNT_DEVS_IN_TOP1000
+  COUNT_ACTIVE_DEVS_IN_TOP1000
+  COUNT_DEVS
+  COUNT_ACTIVE_DEVS
+}
+
+type NodeMetrics {
+  codeCommits: NodeMetric
+  marketCapRank: NodeMetric
+  marketCap24h: NodeMetric
+  athPrice: NodeMetric
+  atlPrice: NodeMetric
+  price24h: NodeMetric
+  price7d: NodeMetric
+  price14d: NodeMetric
+  price30d: NodeMetric
+  price1y: NodeMetric
+  circulatingSupply: NodeMetric
+  totalSupply: NodeMetric
+  maxSupply: NodeMetric
+  volume24h: NodeMetric
+  fdValuation: NodeMetric
+  ghFollowers: NodeMetric
+  ghStars: NodeMetric
+  ghForks: NodeMetric
+  ghOpenIssues: NodeMetric
+  ghWatchers: NodeMetric
+  devScore: NodeMetric
+  score: NodeMetric
+  countDevsInTop1000: NodeMetric
+  countActiveDevsInTop1000: NodeMetric
+  countDevs: NodeMetric
+  countActiveDevs: NodeMetric
+}
+
+type NodeProperties {
+  ghId: String
+  ghLogin: String
+  cgId: String
+  location: [String!]
+  email: [String!]
+  codeStartedAt: String
+  codeUpdatedAt: String
+  codeLastCommitAt: String
+  symbol: String
+  category: [String!]
+  name: [String!]
+  athDate: String
+  atlDate: String
+  image: ImageDetails
+  url: [UrlDetails!]
+}
+
+type NodeProperty {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  nodeId: ID!
+  name: NodePropertyName!
+  nodeType: NodeType
+  refNodeId: ID
+  value: String!
+  numberValue: Float
+  uniqueValue: String
+  isVerified: Boolean!
+  data: String
+  status: NodePropertyStatus!
+  startAt: String
+  endAt: String
+  info: String
+  lastSeenAt: String
+  sourceUrl: String
+  statusInfo: String
+  role: NodePropertyRole
+  domain: String
+  host: String
+  format: NodePropertyFormat
+  priority: Int
+  refNodeType: NodeType
+  verifiedAt: String
+  node: Node!
+  refNode: Node
+}
+
+type NodePropertyConnection {
+  edges: [NodePropertyCursorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type NodePropertyCursorEdge {
+  node: NodeProperty!
+  cursor: String!
+}
+
+enum NodePropertyFormat {
+  URL
+  DATE
+}
+
+enum NodePropertyName {
+  GH_ID
+  GH_LOGIN
+  CG_ID
+  IMAGE
+  URL
+  LOCATION
+  EMAIL
+  CODE_STARTED_AT
+  CODE_UPDATED_AT
+  CODE_LAST_COMMIT_AT
+  SYMBOL
+  TEAM_MEMBER
+  CATEGORY
+  NAME
+  ATH_DATE
+  ATL_DATE
+  TI_ID
+  TI_SLUG
+}
+
+enum NodePropertyRole {
+  WEBSITE
+  CODE
+  BLOCKCHAIN
+  SOCIAL
+  MEMBER
+  ADVISOR
+  IMAGE
+}
+
+enum NodePropertySource {
+  GITHUB
+  COINGECKO
+  WEBSITE
+  TOKENINSIGHT
+}
+
+enum NodePropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum NodeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum NodeType {
+  COIN
+  REPO
+  PERSON
+  ORG
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean
+}
+
+type Query {
+  errorCodes: [ErrorCode!]!
+  nodePropertyConnection(input: InputNodePropertyConnection!): NodePropertyConnection!
+  currentNodePropertyConnection(input: InputNodePropertyConnection!): NodePropertyConnection!
+  nodeById(id: ID!): Node
+  nodeBySlug(slug: String!, type: NodeType!): Node
+  nodeConnection(
+    filter: [InputNodeFilter!]
+    sort: [InputNodeSortBy!]
+    after: String
+    type: NodeType
+    first: Int = 10
+  ): NodeConnection!
+  teamMemberConnection(
+    filter: [InputTeamMemberFilter!]
+    sort: [InputTeamMemberSortBy!]
+    after: String
+    first: Int!
+  ): TeamMemberConnection!
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+enum SqlOperator {
+  EQ
+  NEQ
+  GT
+  GTE
+  LT
+  LTE
+  CONTAINS
+}
+
+enum TaskLogStatus {
+  RUNNING
+  WAITING
+  SUCCESS
+  FAILED
+}
+
+type TeamMember {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  teamId: ID!
+  teamType: NodeType!
+  memberId: ID!
+  memberType: NodeType!
+  status: TeamMemberStatus!
+  priority: Int!
+  isVerified: Boolean!
+  lastSeenAt: String
+  sourceUrl: String
+  startDate: String
+  endDate: String
+  positions: [String!]!
+  roles: [TeamMemberRole!]!
+  team: Node
+  member: Node
+}
+
+type TeamMemberConnection {
+  edges: [TeamMemberCursorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TeamMemberCursorEdge {
+  node: TeamMember!
+  cursor: String!
+}
+
+enum TeamMemberFilterName {
+  ID
+  TEAM_ID
+  TEAM_TYPE
+  MEMBER_ID
+  MEMBER_TYPE
+  ROLE
+  STATUS
+  START_DATE
+  END_DATE
+}
+
+enum TeamMemberRole {
+  LEADERSHIP
+  CONSULTING
+  DEVELOPMENT
+}
+
+enum TeamMemberSortBy {
+  ID
+  PRIORITY
+}
+
+enum TeamMemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+type UrlDetails {
+  url: String!
+  domain: String!
+  host: String!
+  hash: String!
+}
