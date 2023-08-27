@@ -24,6 +24,8 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from "react-native/Libraries/NewAppScreen";
+import {TrendingTopicsList} from "./components/trending-topics-list";
+import useSettingsStore from "./hooks/useSettingsStore";
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -56,6 +58,7 @@ function Section({children, title}: SectionProps): JSX.Element {
 }
 
 function App(): JSX.Element {
+  const {locale} = useSettingsStore();
   const isDarkMode = useColorScheme() === "dark";
 
   const backgroundStyle = {
@@ -68,6 +71,7 @@ function App(): JSX.Element {
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={backgroundStyle.backgroundColor}
       />
+      <TrendingTopicsList locale={locale} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>

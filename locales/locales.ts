@@ -3,10 +3,6 @@ import {LocalizyLocalesProvider, LocalizyLocales} from "./generated-locales";
 
 const LANGS = ["en"];
 
-export type Locale = {
-  lang: string;
-};
-
 export class OurnetTranslator extends LocalizyLocalesProvider<LocalizyLocales> {
   protected createInstance(t: Locales) {
     return new LocalizyLocales(t);
